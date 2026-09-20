@@ -3,7 +3,7 @@
 	"id": "h1n0s-sit",
 	"version": "${version}",
 	"name": "H1n0's Sit",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Lets players sit on blocks.",
 	"authors": [
 		"Me!"
 	],
