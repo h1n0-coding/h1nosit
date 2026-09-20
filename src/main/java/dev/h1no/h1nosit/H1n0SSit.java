@@ -18,6 +18,7 @@ public class H1n0SSit implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModEntities.register();
+		SitHandler.register();
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
