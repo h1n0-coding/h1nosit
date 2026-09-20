@@ -22,13 +22,6 @@
 			"dev.h1no.h1nosit.client.H1n0SSitClient"
 		]
 	},
-	"mixins": [
-		"h1n0s-sit.mixins.json",
-		{
-			"config": "h1n0s-sit.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~1.21.1",
