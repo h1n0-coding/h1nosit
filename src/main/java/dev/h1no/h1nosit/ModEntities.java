@@ -16,6 +16,7 @@ public final class ModEntities {
                     .sized(0.0f, 0.0f)          // без размера: ни коллизии, ни хитбокса
                     .clientTrackingRange(10)    // на каком расстоянии клиенты видят сиденье
                     .noSave()                   // никогда не записывается в мир
+                    .noSummon()
                     .build("seat"));
 
     private ModEntities() {
