@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -42,13 +41,13 @@ public final class SitHandler {
             return InteractionResult.PASS;
         }
 
-        // Кликнули по верхней грани подходящего блока (пока: любые ступеньки).
+        // Кликнули по верхней грани блока из тега h1n0s-sit:sittable.
         if (hit.getDirection() != Direction.UP) {
             return InteractionResult.PASS;
         }
         BlockPos pos = hit.getBlockPos();
         BlockState state = level.getBlockState(pos);
-        if (!state.is(BlockTags.STAIRS)) {
+        if (!state.is(ModTags.SITTABLE)) {
             return InteractionResult.PASS;
         }
 
