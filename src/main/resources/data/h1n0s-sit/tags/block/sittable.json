@@ -3,6 +3,9 @@
   "values": [
     "#minecraft:stairs",
     "minecraft:hay_block",
-    "#minecraft:slabs"
+    "#minecraft:slabs",
+    "minecraft:big_dripleaf",
+    "minecraft:azalea",
+    "minecraft:flowering_azalea"
   ]
 }

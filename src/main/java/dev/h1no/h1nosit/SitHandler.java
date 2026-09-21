@@ -47,7 +47,7 @@ public final class SitHandler {
         }
         BlockPos pos = hit.getBlockPos();
         BlockState state = level.getBlockState(pos);
-        if (!SeatEntity.isSittable(state)) {
+        if (!SitRules.isSittable(state)) {
             return InteractionResult.PASS;
         }
 

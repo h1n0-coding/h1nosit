@@ -1,15 +1,12 @@
 package dev.h1no.h1nosit.entity;
 
-import dev.h1no.h1nosit.ModTags;
+import dev.h1no.h1nosit.SitRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SlabBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.SlabType;
 
 /**
  * Невидимое сиденье: игрок садится на него как пассажир.
@@ -23,16 +20,6 @@ public class SeatEntity extends Entity {
 
     public SeatEntity(EntityType<? extends SeatEntity> type, Level level) {
         super(type, level);
-    }
-
-    /** Единое правило: можно ли сидеть на этом состоянии блока. */
-    public static boolean isSittable(BlockState state) {
-        if (!state.is(ModTags.SITTABLE)) {
-            return false;
-        }
-        // Двойная плита — по сути целый блок, на ней не сидим.
-        return !(state.getBlock() instanceof SlabBlock
-                && state.getValue(SlabBlock.TYPE) == SlabType.DOUBLE);
     }
 
     public void setAnchor(BlockPos pos) {
@@ -58,7 +45,7 @@ public class SeatEntity extends Entity {
         // Незагруженные чанки не трогаем, чтобы проверка не заставила игру их грузить.
         if (this.anchorPos != null
                 && this.level().hasChunkAt(this.anchorPos)
-                && !isSittable(this.level().getBlockState(this.anchorPos))) {
+                && !SitRules.isSittable(this.level().getBlockState(this.anchorPos))) {
             this.discard();
         }
     }
