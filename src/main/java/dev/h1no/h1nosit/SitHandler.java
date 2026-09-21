@@ -15,7 +15,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 public final class SitHandler {
+
+    /** Сколько игроков может сидеть на одном блоке. */
+    private static final int MAX_SITTERS_PER_BLOCK = 2;
+
+    /** Минимальное расстояние между двумя сидящими на блоке (ширина игрока). */
+    private static final double MIN_SEAT_DISTANCE = 0.6;
 
     private SitHandler() {
     }
@@ -50,9 +58,14 @@ public final class SitHandler {
         if (!SitRules.isSittable(state)) {
             return InteractionResult.PASS;
         }
+        // Дополнительные условия, только для момента посадки (например, кровать днём).
+        if (!SitRules.canStartSitting(level, state)) {
+            return InteractionResult.PASS;
+        }
 
-        // Место уже занято другим игроком?
-        if (isOccupied(serverLevel, pos)) {
+        // На блоке уже сидят двое, или рядом с точкой клика уже сидит другой игрок?
+        Vec3 at = hit.getLocation();
+        if (!hasRoomFor(serverLevel, pos, at)) {
             return InteractionResult.PASS;
         }
 
@@ -61,7 +74,6 @@ public final class SitHandler {
         if (seat == null) {
             return InteractionResult.PASS;
         }
-        Vec3 at = hit.getLocation();
         seat.setPos(at.x, at.y, at.z);
         seat.setAnchor(pos);
         serverLevel.addFreshEntity(seat);
@@ -73,12 +85,23 @@ public final class SitHandler {
         return InteractionResult.SUCCESS;
     }
 
-    /** Есть ли на этом блоке сиденье, на котором кто-то сидит. */
-    private static boolean isOccupied(ServerLevel level, BlockPos pos) {
-        return !level.getEntitiesOfClass(
+    /** Есть ли на этом блоке место ещё для одного сидящего в точке клика. */
+    private static boolean hasRoomFor(ServerLevel level, BlockPos pos, Vec3 at) {
+        List<SeatEntity> seats = level.getEntitiesOfClass(
                 SeatEntity.class,
                 new AABB(pos).inflate(1.0),
                 seat -> pos.equals(seat.getAnchorPos()) && !seat.getPassengers().isEmpty()
-        ).isEmpty();
+        );
+        if (seats.size() >= MAX_SITTERS_PER_BLOCK) {
+            return false;
+        }
+        for (SeatEntity seat : seats) {
+            double dx = seat.getX() - at.x;
+            double dz = seat.getZ() - at.z;
+            if (dx * dx + dz * dz < MIN_SEAT_DISTANCE * MIN_SEAT_DISTANCE) {
+                return false;
+            }
+        }
+        return true;
     }
 }
