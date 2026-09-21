@@ -47,7 +47,7 @@ public final class SitHandler {
         }
         BlockPos pos = hit.getBlockPos();
         BlockState state = level.getBlockState(pos);
-        if (!state.is(ModTags.SITTABLE)) {
+        if (!SeatEntity.isSittable(state)) {
             return InteractionResult.PASS;
         }
 
@@ -63,7 +63,7 @@ public final class SitHandler {
         }
         Vec3 at = hit.getLocation();
         seat.setPos(at.x, at.y, at.z);
-        seat.setAnchor(pos, state.getBlock());
+        seat.setAnchor(pos);
         serverLevel.addFreshEntity(seat);
 
         if (!serverPlayer.startRiding(seat, true)) {
