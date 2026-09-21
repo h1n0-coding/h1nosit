@@ -7,6 +7,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Невидимое сиденье: игрок садится на него как пассажир.
@@ -30,6 +31,12 @@ public class SeatEntity extends Entity {
         return anchorPos;
     }
 
+    // Сиденье считается «стоящим на земле»: этого требуют блоки, реагирующие на вес.
+    @Override
+    public boolean onGround() {
+        return true;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -41,12 +48,17 @@ public class SeatEntity extends Entity {
             this.discard();
             return;
         }
-        // Блок под сиденьем изменился и больше не подходит -> удаляем.
         // Незагруженные чанки не трогаем, чтобы проверка не заставила игру их грузить.
-        if (this.anchorPos != null
-                && this.level().hasChunkAt(this.anchorPos)
-                && !SitRules.isSittable(this.level().getBlockState(this.anchorPos))) {
-            this.discard();
+        if (this.anchorPos != null && this.level().hasChunkAt(this.anchorPos)) {
+            BlockState state = this.level().getBlockState(this.anchorPos);
+            // Блок под сиденьем изменился и больше не подходит -> удаляем.
+            if (!SitRules.isSittable(state)) {
+                this.discard();
+                return;
+            }
+            // Сиденье «стоит» на блоке: сообщаем блоку, что на нём есть сущность.
+            // Так, например, большой капельник начинает наклоняться, как обычно.
+            state.entityInside(this.level(), this.anchorPos, this);
         }
     }
 
