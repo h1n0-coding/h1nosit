@@ -3,15 +3,15 @@
 	"id": "h1n0s-sit",
 	"version": "${version}",
 	"name": "H1n0's Sit",
-	"description": "Lets players sit on blocks.",
+	"description": "Sit on stairs, slabs, beds, azalea and big dripleaf.",
 	"authors": [
-		"Me!"
+		"h1n0"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/h1n0/h1nosit",
+		"discord": "https://discord.gg/твоё-приглашение"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/h1n0s-sit/icon.png",
 	"environment": "*",
 	"entrypoints": {
