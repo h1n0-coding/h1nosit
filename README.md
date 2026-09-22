@@ -1,9 +1,34 @@
-# H1n0&#39;s Sit
+# H1n0's Sit
 
-## Setup
+Небольшой Fabric-мод для Minecraft 1.21.1: позволяет садиться на подходящие блоки.
 
-For setup instructions, please see the [Fabric Documentation page](https://docs.fabricmc.net/develop/getting-started/creating-a-project#setting-up) related to the IDE that you are using.
+## Возможности
 
-## License
+- Правый клик пустой рукой по верхней грани подходящего блока — садишься.
+- Приседание — встаёшь.
+- На один блок может сесть до двух игроков.
+- Поддерживаются: ступеньки, плиты (кроме двойных), кровати (только пока
+  на них нельзя лечь спать, то есть днём), азалия и цветущая азалия,
+  большой капельник (сбрасывает, когда лист наклоняется).
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+## Требования
+
+- Minecraft 1.21.1
+- Fabric Loader
+- Fabric API
+- Java 21
+
+Мод нужен и на сервере, и у всех игроков.
+
+## Установка
+
+1. Установи Fabric Loader через официальный установщик: <https://fabricmc.net/use/>
+2. Скачай Fabric API для 1.21.1.
+3. Положи `h1n0s-sit-<версия>.jar` и Fabric API в папку `mods`.
+
+## Список блоков (тег)
+
+Блоки, на которых можно сидеть, заданы тегом `h1n0s-sit:sittable`
+(`data/h1n0s-sit/tags/block/sittable.json`). Другие моды и датапаки
+могут добавить свои блоки в этот тег без изменений в коде мода —
+достаточно своего JSON-файла с тем же путём.
