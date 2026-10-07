@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,15 +34,12 @@ public final class SitHandler {
     }
 
     private static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
-        // Всё решает сервер; событие приходит и на клиенте, там ничего не делаем.
-        if (level.isClientSide() || hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.PASS;
-        }
-        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer)) {
+        if (hand != InteractionHand.MAIN_HAND) {
             return InteractionResult.PASS;
         }
 
-        // Условия: не наблюдатель, ещё не сидит, не приседает, обе руки пустые.
+        // Общие условия: не наблюдатель, ещё не сидит, не приседает, обе руки пустые.
+        // Проверяются одинаково и на клиенте, и на сервере — эти данные видны обеим сторонам.
         if (player.isSpectator() || player.isPassenger() || player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
@@ -49,28 +47,38 @@ public final class SitHandler {
             return InteractionResult.PASS;
         }
 
-        // Кликнули по верхней грани блока из тега h1n0s-sit:sittable.
+        // Кликнули по верхней грани подходящего блока.
         if (hit.getDirection() != Direction.UP) {
             return InteractionResult.PASS;
         }
         BlockPos pos = hit.getBlockPos();
         BlockState state = level.getBlockState(pos);
-        if (!SitRules.isSittable(state)) {
-            return InteractionResult.PASS;
-        }
-        // Дополнительные условия, только для момента посадки (например, кровать днём).
-        if (!SitRules.canStartSitting(level, state)) {
+        if (!SitRules.isSittable(state) || !SitRules.canStartSitting(level, state)) {
             return InteractionResult.PASS;
         }
 
-        // На блоке уже сидят двое, или рядом с точкой клика уже сидит другой игрок?
+        // Место занято другим сидящим? Проверяется одинаково на обеих сторонах:
+        // сиденья видны клиенту благодаря clientTrackingRange.
         Vec3 at = hit.getLocation();
-        if (!hasRoomFor(serverLevel, pos, at)) {
+        if (!hasRoomFor(level, pos, at)) {
+            return InteractionResult.PASS;
+        }
+
+        if (level.isClientSide()) {
+            // У клиента есть все данные, чтобы честно предсказать исход —
+            // поэтому отвечаем SUCCESS, а не PASS. Это не решение о посадке
+            // (его по-прежнему принимает только сервер), а просто сигнал игре
+            // не пытаться угадывать клик самой: похоже, именно неопределённость
+            // здесь провоцирует баг 26.1.2 с ложным сообщением о высоте.
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.PASS;
         }
 
         // Создаём сиденье там, куда кликнул игрок, и сажаем игрока.
-        SeatEntity seat = ModEntities.SEAT.create(serverLevel);
+        SeatEntity seat = ModEntities.SEAT.create(serverLevel, EntitySpawnReason.TRIGGERED);
         if (seat == null) {
             return InteractionResult.PASS;
         }
@@ -78,17 +86,18 @@ public final class SitHandler {
         seat.setAnchor(pos);
         serverLevel.addFreshEntity(seat);
 
-        if (!serverPlayer.startRiding(seat, true)) {
+        boolean rode = serverPlayer.startRiding(seat, true, true);
+        if (!rode) {
             seat.discard();
             return InteractionResult.PASS;
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     /** Есть ли на этом блоке место ещё для одного сидящего в точке клика. */
-    private static boolean hasRoomFor(ServerLevel level, BlockPos pos, Vec3 at) {
-        List<SeatEntity> seats = level.getEntitiesOfClass(
-                SeatEntity.class,
+    private static boolean hasRoomFor(Level level, BlockPos pos, Vec3 at) {
+        List<SeatEntity> seats = level.getEntities(
+                net.minecraft.world.level.entity.EntityTypeTest.forClass(SeatEntity.class),
                 new AABB(pos).inflate(1.0),
                 seat -> pos.equals(seat.getAnchorPos()) && !seat.getPassengers().isEmpty()
         );

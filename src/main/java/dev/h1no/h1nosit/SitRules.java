@@ -47,7 +47,7 @@ public final class SitRules {
         if (state.getBlock() instanceof BedBlock) {
             // Кровать: садимся только там, где она работает как кровать (не Незер/Энд),
             // и только днём, когда лечь спать всё равно нельзя.
-            return level.dimensionType().bedWorks() && level.isDay();
+            return !level.dimensionType().hasFixedTime() && level.getDefaultClockTime() % 24000 < 12000;
         }
         return true;
     }

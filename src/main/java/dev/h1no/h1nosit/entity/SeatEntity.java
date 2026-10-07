@@ -8,6 +8,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 
 /**
  * Невидимое сиденье: игрок садится на него как пассажир.
@@ -40,7 +45,7 @@ public class SeatEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
         // Нет пассажира -> удаляем (первые ticks не проверяем: пассажир ещё садится).
@@ -56,10 +61,26 @@ public class SeatEntity extends Entity {
                 this.discard();
                 return;
             }
-            // Сиденье «стоит» на блоке: сообщаем блоку, что на нём есть сущность.
-            // Так, например, большой капельник начинает наклоняться, как обычно.
-            state.entityInside(this.level(), this.anchorPos, this);
+            // Сиденье «стоит» на блоке: сообщаем об этом только большому капельнику,
+            // чтобы он начинал наклоняться. Остальным блокам это не нужно и, как
+            // выяснилось на 26.1, может приводить к лишним побочным эффектам.
+            if (state.getBlock() instanceof net.minecraft.world.level.block.BigDripleafBlock) {
+                state.entityInside(this.level(), this.anchorPos, this, InsideBlockEffectApplier.NOOP, true);
+            }
         }
+    }
+
+    // Сиденье невидимо и неуязвимо: урон на него не действует.
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource damageSource, float amount) {
+        return false;
+    }
+
+    // Сиденье никогда не записывается в мир: это служебная сущность,
+    // которая либо живёт считаные секунды, либо должна исчезнуть сама.
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
     }
 
     // У сиденья нет собственных данных, но Entity требует эти три метода.
@@ -68,10 +89,10 @@ public class SeatEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(ValueInput input) {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(ValueOutput output) {
     }
 }
